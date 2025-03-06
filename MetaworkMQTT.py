@@ -12,6 +12,7 @@ class MetaworkMQTT:
     def __init__(self, host, port): #, username, password):
         self.host = host
         self.port = port
+        self.mod = False
 #        self.username = username
 #        self.password = password
         self.client = mqtt.Client()
@@ -51,6 +52,7 @@ class MetaworkMQTT:
             "devType": data["devType"],
             "date": data["date" ]
         })
+        self.mod = True
         print(data)
         
 #        print("register")
@@ -61,7 +63,7 @@ class MetaworkMQTT:
         data = json.loads(msg.payload)
         for d in self.devices:
             if d["devType"] == "robot" and d["type"] == data["type"]:
-                print("found") # 本当は、現在使われているか、オーバライドか、などの情報を保持すべき
+                print("Request found",d) # 本当は、現在使われているか、オーバライドか、などの情報を保持すべき
                 self.client.publish("dev/"+data["devId"], json.dumps(d))                
                 return
         print("not found")
@@ -70,6 +72,7 @@ class MetaworkMQTT:
     def print_devices(self):
         for i,r in enumerate(self.devices):
             print(i,r)
+        self.mod = False
             
 
 
@@ -80,5 +83,6 @@ if __name__ == "__main__":
     
     while True:
         time.sleep(1)
-        print("---- "+time.ctime()+" -------------")
-        mq.print_devices()
+        if mq.mod:
+            print("---- "+time.ctime()+" -------------")
+            mq.print_devices()
