@@ -29,18 +29,22 @@ class MetaworkMQTT:
     def on_connect(self, client, userdata, flags, rc):
         print("Connected with result code "+str(rc))
         client.subscribe("mgr/register")
+        client.subscribe("mgr/unregister")
         client.subscribe("mgr/request")
 
     def on_message(self, client, userdata, msg):
 #        print(msg.topic+" "+str(msg.payload))
         if msg.topic == "mgr/register":
             self.register(msg)
+        elif msg.topic == "mgr/unregister":    
+            self.unregister(msg)
         elif msg.topic == "mgr/request":    
             self.request(msg)
             
     def register(self, msg):
-        print("register")
         data = json.loads(msg.payload)
+        ver = data.get("version", "none")
+        print("register:", data["devId"][:4]+"-"+data["devId"][-4:],ver,data["device"]["agent"])
         # 同じIDのデバイスがあるかを確認
         for d in self.devices:
             if d["devId"] == data["devId"]:
@@ -48,12 +52,23 @@ class MetaworkMQTT:
                 break
         self.devices.append({
             "type": data["codeType"],
+            "version":ver,
             "devId": data["devId"],
             "devType": data["devType"],
             "date": data["date" ]
         })
         self.mod = True
-        print(data)
+
+    def unregister(self, msg):
+        data = json.loads(msg.payload)
+        print("unregister:", data["devId"])
+        # 同じIDのデバイスがあるかを確認
+        for d in self.devices:
+            if d["devId"] == data["devId"]:
+                self.devices.remove(d) # あれば、そのデータを消したうえで
+                break
+        self.mod = True
+        
         
 #        print("register")
 #        self.client.publish("mgr/register", json.dumps(data))
