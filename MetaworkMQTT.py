@@ -44,7 +44,11 @@ class MetaworkMQTT:
     def register(self, msg):
         data = json.loads(msg.payload)
         ver = data.get("version", "none")
-        print("register:", data["devId"][:4]+"-"+data["devId"][-4:],ver,data["device"]["agent"])
+        if "device" in data:
+            print("register:", data["devId"][:4]+"-"+data["devId"][-4:],ver,data["device"]["agent"])
+        else:
+            print("register:", data["devId"][:4]+"-"+data["devId"][-4:],ver)
+            
         # 同じIDのデバイスがあるかを確認
         for d in self.devices:
             if d["devId"] == data["devId"]:
