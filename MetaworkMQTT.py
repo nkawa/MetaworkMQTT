@@ -48,7 +48,7 @@ class MetaworkMQTT:
     # we need to flush obsolute devices after TIMEOUT_HOUR
     def update_status(self):
         for d in self.devices:
-            if d["registered"]-(time.time()) > TIMEOUT_HOUR*3600:
+            if (time.time())-d["registered"] > TIMEOUT_HOUR*3600:
                 print("TIMEOUT: ",d) 
                 self.devices.remove(d) # あれば、そのデータを消す            
             
