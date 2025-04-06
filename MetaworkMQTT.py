@@ -8,6 +8,8 @@ import paho.mqtt.client as mqtt
 import json
 import time
 
+TIMEOUT_HOUR = 1  # for More than 1 hour, we need to clear the device db.
+#client robots should update there info for each 30min.
 class MetaworkMQTT:
     def __init__(self, host, port): #, username, password):
         self.host = host
@@ -35,11 +37,20 @@ class MetaworkMQTT:
     def on_message(self, client, userdata, msg):
 #        print(msg.topic+" "+str(msg.payload))
         if msg.topic == "mgr/register":
+            self.update_status()
             self.register(msg)
         elif msg.topic == "mgr/unregister":    
+            self.update_status()
             self.unregister(msg)
         elif msg.topic == "mgr/request":    
             self.request(msg)
+        
+    # we need to flush obsolute devices after TIMEOUT_HOUR
+    def update_status(self):
+        for d in self.devices:
+            if d["registered"]-(time.time()) > TIMEOUT_HOUR*3600:
+                print("TIMEOUT: ",d) 
+                self.devices.remove(d) # あれば、そのデータを消す            
             
     def register(self, msg):
         data = json.loads(msg.payload)
@@ -59,7 +70,8 @@ class MetaworkMQTT:
             "version":ver,
             "devId": data["devId"],
             "devType": data["devType"],
-            "date": data["date" ]
+            "date": data["date" ],
+            "registered": int(time.time())
         })
         self.mod = True
 
@@ -85,7 +97,7 @@ class MetaworkMQTT:
                 print("Request found",d) # 本当は、現在使われているか、オーバライドか、などの情報を保持すべき
                 self.client.publish("dev/"+data["devId"], json.dumps(d))                
                 return
-        print("not found")
+        print("not found request ", data["type"])
         self.client.publish("dev/"+data["devId"], json.dumps({"devId": "none"}))
             
     def print_devices(self):
