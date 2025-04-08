@@ -65,6 +65,7 @@ class MetaworkMQTT:
             if d["devId"] == data["devId"]:
                 self.devices.remove(d) # あれば、そのデータを消したうえで
                 break
+        # 最後にappend する
         self.devices.append({
             "type": data["codeType"],
             "version":ver,
@@ -92,7 +93,9 @@ class MetaworkMQTT:
 #   希望するタイプのデバイスがあるかを確認
     def request(self, msg):
         data = json.loads(msg.payload)
-        for d in self.devices:
+        #逆に探すべし。
+        rev_list = self.devices[::-1]
+        for d in rev_list:
             if d["devType"] == "robot" and d["type"] == data["type"]:
                 print("Request found",d) # 本当は、現在使われているか、オーバライドか、などの情報を保持すべき
                 self.client.publish("dev/"+data["devId"], json.dumps(d))                
