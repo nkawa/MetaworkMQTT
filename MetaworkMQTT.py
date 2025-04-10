@@ -93,15 +93,27 @@ class MetaworkMQTT:
 #   希望するタイプのデバイスがあるかを確認
     def request(self, msg):
         data = json.loads(msg.payload)
+        print("Request:",data)
         #逆に探すべし。
         rev_list = self.devices[::-1]
-        for d in rev_list:
-            if d["devType"] == "robot" and d["type"] == data["type"]:
-                print("Request found",d) # 本当は、現在使われているか、オーバライドか、などの情報を保持すべき
-                self.client.publish("dev/"+data["devId"], json.dumps(d))                
-                return
+        try:
+            for d in rev_list:
+                if d["devType"] == "robot" and d["type"] == data["type"]:
+                    print("Request found",d) # 本当は、現在使われているか、オーバライドか、などの情報を保持すべき
+                    self.client.publish("dev/"+data["devId"], json.dumps(d))
+                    self.pub_event({"event":"request", "from":data, "to":d})                
+                    return
+        except:
+            print("error in request",data)
         print("not found request ", data["type"])
         self.client.publish("dev/"+data["devId"], json.dumps({"devId": "none"}))
+    
+    def pub_status(self):
+        self.client.publish("mgr/status", json.dumps(self.devices))
+        
+    def pub_event(self,event):
+        self.client.publish("mgr/event", json.dumps(event))
+        
             
     def print_devices(self):
         for i,r in enumerate(self.devices):
@@ -120,3 +132,4 @@ if __name__ == "__main__":
         if mq.mod:
             print("---- "+time.ctime()+" -------------")
             mq.print_devices()
+            mq.pub_status()
