@@ -66,8 +66,16 @@ class MetaworkMQTT:
                 self.devices.remove(d) # あれば、そのデータを消したうえで
                 break
         # 最後にappend する
+
+        # update for codeType -> type 
+        cType ="" 
+        if "type" in data:
+            cType= data["type"]
+        else:
+            cType = data["codeType"]
+
         self.devices.append({
-            "type": data["codeType"],
+            "type": cType,
             "version":ver,
             "devId": data["devId"],
             "devType": data["devType"],
