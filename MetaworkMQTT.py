@@ -55,11 +55,15 @@ class MetaworkMQTT:
     def register(self, msg):
         data = json.loads(msg.payload)
         ver = data.get("version", "none")
+
+        if not "devId" in data:
+            return
+        
         if "device" in data:
             print("register:", data["devId"][:4]+"-"+data["devId"][-4:],ver,data["device"]["agent"])
         else:
             print("register:", data["devId"][:4]+"-"+data["devId"][-4:],ver)
-            
+
         # 同じIDのデバイスがあるかを確認
         for d in self.devices:
             if d["devId"] == data["devId"]:
@@ -71,8 +75,10 @@ class MetaworkMQTT:
         cType ="" 
         if "type" in data:
             cType= data["type"]
-        else:
+        elif "codeType" in data:
             cType = data["codeType"]
+        else
+            cType = "unknown"
 
         self.devices.append({
             "type": cType,
@@ -86,6 +92,8 @@ class MetaworkMQTT:
 
     def unregister(self, msg):
         data = json.loads(msg.payload)
+        if not "devId" in data:
+            return
         print("unregister:", data["devId"])
         # 同じIDのデバイスがあるかを確認
         for d in self.devices:
@@ -109,7 +117,7 @@ class MetaworkMQTT:
                 if d["devType"] == "robot" and d["type"] == data["type"]:
                     print("Request found",d) # 本当は、現在使われているか、オーバライドか、などの情報を保持すべき
                     self.client.publish("dev/"+data["devId"], json.dumps(d))
-                    self.pub_event({"event":"request", "from":data, "to":d})                
+                    self.pub_event({"event":"request", "from":data, "to":d, "date":time.ctime()})               
                     return
         except:
             print("error in request",data)
