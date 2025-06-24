@@ -77,7 +77,7 @@ class MetaworkMQTT:
             cType= data["type"]
         elif "codeType" in data:
             cType = data["codeType"]
-        else
+        else:
             cType = "unknown"
 
         self.devices.append({
