@@ -79,13 +79,17 @@ class MetaworkMQTT:
             cType = data["codeType"]
         else:
             cType = "unknown"
+        
+        optStr = ""
+        if "optStr" in data:
+            optStr = data["optStr"]
 
         self.devices.append({
             "type": cType,
             "version":ver,
             "devId": data["devId"],
             "devType": data["devType"],
-            "optStr": data["optStr"],
+            "optStr": optStr,
             "date": data["date" ],
             "registered": int(time.time())
         })
