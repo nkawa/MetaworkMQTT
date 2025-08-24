@@ -85,6 +85,7 @@ class MetaworkMQTT:
             "version":ver,
             "devId": data["devId"],
             "devType": data["devType"],
+            "optStr": data["optStr"],
             "date": data["date" ],
             "registered": int(time.time())
         })
@@ -139,7 +140,7 @@ class MetaworkMQTT:
 
 
 if __name__ == "__main__":
-    host = "192.168.207.22"
+    host = "127.0.0.1"
     port = 1883
     mq = MetaworkMQTT(host, port)
     
